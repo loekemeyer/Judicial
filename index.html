@@ -79,6 +79,17 @@
   }
   footer { text-align: center; color: var(--muted); font-size: .85rem; margin-top: 56px;
            border-top: 1px solid var(--border); padding-top: 24px; }
+  .cmd-row { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+  .cmd {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px;
+    padding: 8px 12px; flex: 1; font-size: .88rem; overflow-x: auto; white-space: nowrap;
+    font-family: "SF Mono", SFMono-Regular, Consolas, monospace;
+  }
+  .copy {
+    background: var(--card); color: var(--text); border: 1px solid var(--border);
+    border-radius: 6px; padding: 8px 12px; font-size: .82rem; cursor: pointer; white-space: nowrap;
+  }
+  .copy:hover { border-color: var(--accent); }
 </style>
 </head>
 <body>
@@ -106,9 +117,50 @@
   </p>
 
   <div class="btns">
-    <a class="btn btn-primary" href="https://github.com/loekemeyer/Judicial/blob/main/scraper_pjn.py">Ver el código</a>
-    <a class="btn btn-ghost" href="https://raw.githubusercontent.com/loekemeyer/Judicial/main/scraper_pjn.py" download>Descargar scraper_pjn.py</a>
+    <a class="btn btn-primary" href="https://github.com/loekemeyer/Judicial/archive/refs/heads/main.zip">⬇️ Descargar el programa (ZIP)</a>
+    <a class="btn btn-ghost" href="https://github.com/loekemeyer/Judicial/raw/main/Guia_descargar_expedientes_PJN.pdf" download>📄 Descargar guía (PDF)</a>
+    <a class="btn btn-ghost" href="https://github.com/loekemeyer/Judicial/blob/main/scraper_pjn.py">Ver el código</a>
     <a class="btn btn-ghost" href="https://github.com/loekemeyer/Judicial">Repositorio</a>
+  </div>
+
+  <div class="warn">
+    <strong>⚠️ Importante — esto se ejecuta en tu computadora.</strong>
+    Por seguridad, los navegadores <em>prohíben</em> que una página web lea el
+    contenido de otra (la web del Poder Judicial). Por eso la descarga de
+    expedientes <strong>no puede correr dentro de esta página</strong> ni en un
+    servidor: el programa abre un navegador en tu máquina para que vos resuelvas
+    el captcha y luego baja todo solo. Esta página te da todo lo necesario para
+    hacerlo en 5 minutos. 👇
+  </div>
+
+  <h2>🚀 Guía rápida</h2>
+  <div class="card">
+    <h3>1. Instalar Python <span style="color:var(--muted);font-weight:400">(una vez)</span></h3>
+    <p>Descargalo de <a href="https://www.python.org/downloads/">python.org/downloads</a>
+       y al instalar tildá <strong>“Add Python to PATH”</strong>.</p>
+
+    <h3>2. Bajar el programa <span style="color:var(--muted);font-weight:400">(una vez)</span></h3>
+    <p>Usá el botón <strong>“⬇️ Descargar el programa (ZIP)”</strong> de arriba y
+       descomprimí la carpeta <code>Judicial</code>.</p>
+
+    <h3>3. Abrir la terminal en esa carpeta</h3>
+    <p>Entrá a la carpeta, escribí <code>cmd</code> en la barra de dirección y
+       apretá Enter (se abre una ventana negra).</p>
+
+    <h3>4. Preparar <span style="color:var(--muted);font-weight:400">(una vez)</span></h3>
+    <div class="cmd-row"><code class="cmd">pip install playwright</code><button class="copy" type="button">Copiar</button></div>
+    <div class="cmd-row"><code class="cmd">playwright install chromium</code><button class="copy" type="button">Copiar</button></div>
+
+    <h3>5. Usarlo <span style="color:var(--muted);font-weight:400">(cada vez)</span></h3>
+    <div class="cmd-row"><code class="cmd">python scraper_pjn.py</code><button class="copy" type="button">Copiar</button></div>
+    <p>Se abre el navegador → poné el apellido, resolvé el captcha, apretá
+       <strong>Buscar</strong> → volvé a la ventana negra y apretá <strong>Enter</strong>.
+       Los PDFs se guardan en la carpeta <code>expedientes_pjn</code>.</p>
+
+    <h3 style="margin-top:18px">¿No anda la primera vez?</h3>
+    <div class="cmd-row"><code class="cmd">python scraper_pjn.py --debug</code><button class="copy" type="button">Copiar</button></div>
+    <p>Genera la carpeta <code>debug_scw</code>; enviá el archivo
+       <code>debug_scw/tablas.txt</code> para terminar de ajustarlo.</p>
   </div>
 
   <h2>Instalación</h2>
@@ -189,6 +241,18 @@ playwright install chromium</code></pre>
       const prev = b.textContent;
       b.textContent = "✅ Copiado";
       setTimeout(() => { b.textContent = prev; }, 1800);
+    });
+  });
+
+  // Botones "Copiar" de los comandos de la guía rápida.
+  document.querySelectorAll(".cmd-row .copy").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const cmd = btn.parentElement.querySelector(".cmd").textContent;
+      navigator.clipboard.writeText(cmd).then(() => {
+        const prev = btn.textContent;
+        btn.textContent = "✅";
+        setTimeout(() => { btn.textContent = prev; }, 1400);
+      });
     });
   });
 </script>
