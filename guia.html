@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Guía — Descargar expedientes PJN</title>
+<style>
+  @page { margin: 22mm 18mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    color: #1a1a1a; line-height: 1.55; font-size: 12.5px; margin: 0;
+  }
+  h1 { font-size: 22px; margin: 0 0 4px; color: #1f3a5f; }
+  .lead { color: #555; margin: 0 0 18px; font-size: 12px; }
+  h2 {
+    font-size: 15px; color: #fff; background: #1f3a5f;
+    padding: 6px 12px; border-radius: 6px; margin: 20px 0 10px;
+  }
+  ol { padding-left: 20px; margin: 6px 0; }
+  li { margin: 5px 0; }
+  .cmd {
+    background: #0b0f14; color: #e6edf3; font-family: Consolas, monospace;
+    padding: 8px 12px; border-radius: 6px; margin: 6px 0; font-size: 12px;
+    word-break: break-all;
+  }
+  .warn {
+    border-left: 4px solid #d29922; background: #fff8e6;
+    padding: 8px 12px; border-radius: 0 6px 6px 0; margin: 10px 0; font-size: 12px;
+  }
+  .ok {
+    border-left: 4px solid #2ea043; background: #eaf7ee;
+    padding: 8px 12px; border-radius: 0 6px 6px 0; margin: 10px 0; font-size: 12px;
+  }
+  a { color: #1f6feb; text-decoration: none; }
+  strong { color: #1f3a5f; }
+  .footer { margin-top: 26px; border-top: 1px solid #ddd; padding-top: 8px;
+            color: #888; font-size: 10.5px; text-align: center; }
+  .step-note { color:#555; font-size: 11.5px; margin: 2px 0 0 4px; }
+</style>
+</head>
+<body>
+
+  <h1>📥 Cómo descargar los expedientes del Poder Judicial</h1>
+  <p class="lead">Guía paso a paso — Sistema de Consulta Web (SCW) del Poder Judicial de la Nación · scw.pjn.gov.ar</p>
+
+  <h2>Paso 1 — Instalar Python <span style="font-weight:normal">(una sola vez)</span></h2>
+  <ol>
+    <li>Entrá a <strong>https://www.python.org/downloads/</strong></li>
+    <li>Apretá el botón amarillo grande <strong>“Download Python”</strong>.</li>
+    <li>Abrí el archivo descargado.</li>
+    <li><strong>MUY IMPORTANTE:</strong> antes de instalar, tildá abajo la casilla
+        <strong>“Add Python to PATH”</strong>.</li>
+    <li>Apretá <strong>“Install Now”</strong> y esperá a que termine.</li>
+  </ol>
+
+  <h2>Paso 2 — Bajar el programa <span style="font-weight:normal">(una sola vez)</span></h2>
+  <ol>
+    <li>Entrá a <strong>https://github.com/loekemeyer/Judicial</strong></li>
+    <li>Apretá el botón verde <strong>“Code”</strong> → <strong>“Download ZIP”</strong>.</li>
+    <li>Descomprimí el ZIP (clic derecho → “Extraer todo”). Queda una carpeta llamada <strong>Judicial</strong>.</li>
+  </ol>
+
+  <h2>Paso 3 — Abrir la terminal en esa carpeta</h2>
+  <ol>
+    <li>Entrá a la carpeta <strong>Judicial</strong>.</li>
+    <li>En la barra de arriba (donde dice la ruta de la carpeta), escribí <strong>cmd</strong> y apretá <strong>Enter</strong>.
+        <div class="step-note">Se abre una ventana negra: esa es la “terminal”.</div></li>
+  </ol>
+
+  <h2>Paso 4 — Preparar el programa <span style="font-weight:normal">(una sola vez)</span></h2>
+  <p>Copiá y pegá esto en la ventana negra, uno por uno, apretando Enter y esperando que termine:</p>
+  <div class="cmd">pip install playwright</div>
+  <div class="cmd">playwright install chromium</div>
+
+  <h2>Paso 5 — ¡Usarlo! <span style="font-weight:normal">(esto se hace cada vez)</span></h2>
+  <p>Escribí esto y apretá Enter:</p>
+  <div class="cmd">python scraper_pjn.py</div>
+  <p>Se abre <strong>solo</strong> un navegador con la web del Poder Judicial. Entonces:</p>
+  <ol>
+    <li>Escribí el <strong>apellido</strong> en el campo <em>Parte</em>.</li>
+    <li>Resolvé el <strong>captcha</strong>.</li>
+    <li>Apretá <strong>Buscar</strong> y esperá a ver la lista de causas.</li>
+    <li>Volvé a la <strong>ventana negra</strong> y apretá <strong>Enter</strong>.</li>
+  </ol>
+  <div class="ok">
+    ✅ El programa hace el resto solo: entra a cada causa, anota los movimientos y
+    baja los PDFs en una carpeta llamada <strong>expedientes_pjn</strong>, dentro
+    de la misma carpeta Judicial.
+  </div>
+
+  <h2>Si algo no anda — modo diagnóstico</h2>
+  <p>La primera vez puede que el programa no encuentre bien la tabla de la web.
+     Si pasa, escribí:</p>
+  <div class="cmd">python scraper_pjn.py --debug</div>
+  <div class="warn">
+    Eso crea una carpeta <strong>debug_scw</strong>. Enviá el archivo
+    <strong>debug_scw/tablas.txt</strong> que aparece ahí y se ajusta el programa
+    para que funcione perfecto con la web real. Es un único ajuste y queda andando.
+  </div>
+
+  <div class="footer">
+    Proyecto: github.com/loekemeyer/Judicial · Solo para consulta de información pública del PJN.
+  </div>
+
+</body>
+</html>
