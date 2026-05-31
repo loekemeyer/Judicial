@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scraper de expedientes — PJN (SCW)</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #9da7b3;
+    --accent: #4493f8;
+    --accent-2: #2ea043;
+    --code-bg: #0b0f14;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 24px 18px 80px; }
+  header {
+    text-align: center;
+    padding: 48px 16px 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+  }
+  h1 { font-size: 1.9rem; margin: 0 0 8px; }
+  .sub { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  .badges { margin-top: 18px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .badge {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 999px; padding: 4px 12px; font-size: .82rem; color: var(--muted);
+  }
+  h2 { font-size: 1.3rem; margin: 40px 0 14px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  h3 { font-size: 1.05rem; margin: 24px 0 8px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 20px; margin: 16px 0;
+  }
+  ol, ul { padding-left: 22px; }
+  li { margin: 6px 0; }
+  code {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 6px; padding: 1px 6px; font-size: .9em;
+    font-family: "SF Mono", SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+  }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; overflow-x: auto; font-size: .85rem;
+    font-family: "SF Mono", SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+  }
+  pre code { background: none; border: none; padding: 0; }
+  .btns { display: flex; gap: 12px; flex-wrap: wrap; margin: 22px 0; }
+  .btn {
+    display: inline-block; padding: 10px 18px; border-radius: 8px;
+    font-weight: 600; font-size: .95rem; border: 1px solid var(--border);
+  }
+  .btn-primary { background: var(--accent-2); color: #fff; border-color: var(--accent-2); }
+  .btn-primary:hover { text-decoration: none; filter: brightness(1.08); }
+  .btn-ghost { background: var(--card); color: var(--text); }
+  .btn-ghost:hover { text-decoration: none; border-color: var(--accent); }
+  .note {
+    border-left: 4px solid var(--accent); background: rgba(68,147,248,.08);
+    padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 16px 0;
+  }
+  .warn {
+    border-left: 4px solid #d29922; background: rgba(210,153,34,.08);
+    padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 16px 0;
+  }
+  footer { text-align: center; color: var(--muted); font-size: .85rem; margin-top: 56px;
+           border-top: 1px solid var(--border); padding-top: 24px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>⚖️ Scraper de expedientes — PJN</h1>
+    <p class="sub">Descarga automática de causas del Sistema de Consulta Web (SCW)<br>
+       del Poder Judicial de la Nación</p>
+    <div class="badges">
+      <span class="badge">Python 3</span>
+      <span class="badge">Playwright</span>
+      <span class="badge">scw.pjn.gov.ar</span>
+    </div>
+  </header>
+
+  <p>
+    Herramienta de línea de comandos que automatiza la descarga de expedientes
+    desde el <strong>Sistema de Consulta Web (SCW)</strong> del Poder Judicial de
+    la Nación. Abre un navegador, hace una <strong>pausa</strong> para que ingreses
+    el apellido en <em>Parte</em> y resuelvas el <strong>captcha</strong> a mano, y
+    luego recorre la tabla de resultados: entra a cada causa, registra todas las
+    actuaciones en un CSV y descarga los adjuntos (PDFs), organizados en carpetas
+    por causa.
+  </p>
+
+  <div class="btns">
+    <a class="btn btn-primary" href="https://github.com/loekemeyer/Judicial/blob/main/scraper_pjn.py">Ver el código</a>
+    <a class="btn btn-ghost" href="https://raw.githubusercontent.com/loekemeyer/Judicial/main/scraper_pjn.py" download>Descargar scraper_pjn.py</a>
+    <a class="btn btn-ghost" href="https://github.com/loekemeyer/Judicial">Repositorio</a>
+  </div>
+
+  <h2>Instalación</h2>
+  <pre><code>pip install -r requirements.txt
+playwright install chromium</code></pre>
+
+  <h2>Uso</h2>
+  <pre><code>python scraper_pjn.py</code></pre>
+  <ol>
+    <li>Se abre Chromium. Ingresá el apellido en el campo <strong>Parte</strong>,
+        resolvé el captcha y hacé clic en <strong>BUSCAR</strong>.</li>
+    <li>Cuando veas la tabla de resultados, volvé a la terminal y presioná
+        <strong>ENTER</strong>.</li>
+    <li>El script recorre las causas, guarda <code>actuaciones.csv</code> y descarga
+        los adjuntos en <code>expedientes_pjn/&lt;numero&gt; - &lt;caratula&gt;/</code>.</li>
+  </ol>
+
+  <h2>Notas sobre el SCW</h2>
+  <div class="card">
+    <ul>
+      <li>El SCW es una app <strong>JSF/Seam</strong> (no una SPA). Las URLs arrastran
+          un parámetro de conversación <code>cid</code> que caduca, por eso el script
+          re-localiza las filas en vez de guardar URLs.</li>
+      <li>Las causas <strong>penales</strong> y de <strong>familia</strong> no aparecen
+          en la consulta pública.</li>
+      <li>Las esperas son por refresco de elementos (AJAX), no por cambio de URL.</li>
+    </ul>
+  </div>
+
+  <div class="warn">
+    <strong>⚙️ Ajustes necesarios.</strong> Los selectores marcados con
+    <code># &gt;&gt;&gt; AJUSTAR</code> en <code>scraper_pjn.py</code> son genéricos.
+    Inspeccioná el HTML real del sitio (F12 → Inspeccionar) y reemplazálos según la
+    versión vigente del SCW.
+  </div>
+
+  <div class="note">
+    <strong>ℹ️ Nota.</strong> El script necesita un entorno con interfaz gráfica
+    porque abre el navegador visible para resolver el captcha. Se ejecuta en tu
+    máquina, no en un servidor sin pantalla.
+  </div>
+
+  <h2>Código fuente — <code>scraper_pjn.py</code></h2>
+  <p style="color:var(--muted)">
+    El script completo, embebido para que lo leas acá mismo. También podés
+    <a href="https://raw.githubusercontent.com/loekemeyer/Judicial/main/scraper_pjn.py" download>descargarlo</a>.
+  </p>
+  <div class="btns" style="margin-top:8px">
+    <button class="btn btn-ghost" id="copyBtn" type="button">📋 Copiar código</button>
+  </div>
+  <pre><code id="src" class="language-python">Cargando código…</code></pre>
+
+  <footer>
+    Proyecto <a href="https://github.com/loekemeyer/Judicial">loekemeyer/Judicial</a> ·
+    Solo para consulta de información pública del PJN.
+  </footer>
+
+</div>
+
+<script>
+  const RAW_URL = "https://raw.githubusercontent.com/loekemeyer/Judicial/main/scraper_pjn.py";
+  const el = document.getElementById("src");
+
+  fetch(RAW_URL)
+    .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+    .then(code => {
+      el.textContent = code;                 // textContent escapa el HTML automáticamente
+      if (window.hljs) hljs.highlightElement(el);
+    })
+    .catch(err => {
+      el.textContent = "No se pudo cargar el código automáticamente (" + err.message +
+        ").\nAbrilo en: " + RAW_URL;
+    });
+
+  document.getElementById("copyBtn").addEventListener("click", () => {
+    navigator.clipboard.writeText(el.textContent).then(() => {
+      const b = document.getElementById("copyBtn");
+      const prev = b.textContent;
+      b.textContent = "✅ Copiado";
+      setTimeout(() => { b.textContent = prev; }, 1800);
+    });
+  });
+</script>
+</body>
+</html>
