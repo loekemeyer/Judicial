@@ -138,3 +138,74 @@ Para pasar a `corregido` la base exige `correccion` y `corregido_en` cargados (c
 
 **La auditoria no se borra.** El rol `anon` tiene SELECT/INSERT/UPDATE pero NO DELETE ni
 TRUNCATE en las tres tablas. Si una fila esta mal, se corrige o se pasa a `descartado`.
+
+## REGLA: claves de Supabase - migrar a las nuevas, NO apagar las legacy todavia
+
+Estado al 2026-09-11. Supabase cambio el sistema de claves. Conviven dos juegos y **los dos
+funcionan a la vez**, asi que se migra cliente por cliente sin downtime.
+
+| Sistema | Claves | Se rota de a una |
+|---|---|---|
+| Nuevo | `sb_publishable_...` (frontend) + `sb_secret_...` (backend) | si |
+| Legacy (JWT) | `anon` + `service_role` | NO: las dos derivan del JWT secret del proyecto |
+
+Doc: `supabase.com/docs/guides/getting-started/migrating-to-new-api-keys`. Textual: *"The
+legacy anon and service_role keys are based on your project's JWT secret, which makes them
+hard to rotate without downtime."* **No existe boton "Roll" para las legacy.**
+
+### 1. Lo filtrado vive en el HISTORIAL de git, y el historial no se arregla
+
+Una `service_role` legacy quedo expuesta en el historial de un repo publico (ver `LOCKS.txt`
+de `GestionProductivaEntero`, entrada 2026-09-04). El arbol de trabajo ya esta limpio, pero
+eso no alcanza: lo que estuvo en un repo publico pudo clonarlo cualquiera y reescribir el
+historial NO lo des-filtra. **El unico arreglo real es invalidar la clave.**
+
+Precision importante: lo que se filtro es la **`service_role` key** (un JWT firmado con el
+secret), NO el JWT secret. De un HS256 no se deriva la clave, asi que **apagar las legacy
+alcanza** para matar lo filtrado. Rotar el JWT secret es un paso extra, no el obligatorio.
+
+### 2. Como se invalida (y por que todavia no)
+
+Dashboard -> Settings -> API Keys -> pestana **"Legacy anon, service_role API keys"** ->
+boton **`Disable JWT-based API keys`**. Apaga `anon` y `service_role` de una sola vez. Es
+reversible. Es lo que la doc pide para este caso: *"Make sure you also switch to publishable
+and secret API keys and disable the anon and service_role keys."*
+
+**NO apretarlo todavia:** apaga TAMBIEN la `anon`, que es la que usa el frontend. Hoy eso
+tira abajo la app entera.
+
+### Orden obligatorio
+
+1. Contar donde esta escrita la clave legacy en este repo:
+   ```
+   grep -rl 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9' . --exclude-dir=.git | wc -l
+   ```
+   (Referencia: `GestionProductivaEntero` tenia 66 archivos y 0 con la clave nueva.)
+2. Reemplazar esa cadena por la `sb_publishable_...` del proyecto Supabase de ESTE repo
+   (cada proyecto tiene la suya; no mezclar).
+3. Migrar todo backend que use `service_role` (Edge Functions, n8n, scripts) a `sb_secret_...`.
+4. Recien con 1-3 hechos en TODOS los repos que peguen contra ese proyecto:
+   `Disable JWT-based API keys`.
+
+### Paso opcional: rotar el JWT secret
+
+Sirve si ademas se sospecha del secret en si. Va en **Settings -> JWT Keys**
+(`/dashboard/project/_/settings/jwt`), NO en la pagina de API Keys:
+
+1. `Migrate JWT secret` - importa el secret viejo y crea una clave asimetrica standby. Sin downtime.
+2. `Rotate keys` - la standby firma los JWT nuevos. NO desloguea a nadie: los tokens no
+   vencidos se siguen aceptando.
+3. Revocar el secret legacy, que queda en *Previously used*.
+
+Dos avisos de la doc antes del paso 2:
+- *"Make sure your app does not directly rely on the legacy JWT secret. If it's verifying every
+  JWT against the legacy JWT secret (using a library like jose, jsonwebtoken or similar),
+  continuing with the rotation might break those components."*
+- *"If you're using Edge Functions that have the Verify JWT setting, continuing with the
+  rotation might break your app. You will need to turn off this setting."*
+
+Cuando revocar: esperar el tiempo de expiracion del access token + 15 min (1 h 15 min si es de
+1 h) para no desloguear a nadie; en un incidente activo, revocar de inmediato.
+
+**Al tocar cualquier archivo con una clave de Supabase, dejarlo en el sistema nuevo. Nunca
+escribir codigo nuevo con la clave legacy.**
