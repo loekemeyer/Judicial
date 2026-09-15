@@ -270,3 +270,36 @@ Cuando revocar: esperar el tiempo de expiracion del access token + 15 min (1 h 1
 
 **Al tocar cualquier archivo con una clave de Supabase, dejarlo en el sistema nuevo. Nunca
 escribir codigo nuevo con la clave legacy.**
+
+## REGLA: toda copia de respaldo nace sin RLS
+
+**Vale para TODOS los repos** (igual que las reglas de Planify y de auditoria: copiar este bloque
+al `CLAUDE.md` de cualquier repo nuevo).
+
+**⚠️ `CREATE TABLE AS` y `SELECT INTO` NO heredan Row Level Security de la tabla de origen.** La
+copia queda con `relrowsecurity = false` aunque la madre este protegida, y los `GRANT` del schema
+le siguen aplicando, asi que `anon` hereda SELECT/INSERT/UPDATE/DELETE. Postgres no emite ninguna
+advertencia. **Prender RLS en el MISMO paso en que se crea la copia**, no despues:
+
+```sql
+create table <schema>.<copia> as select * from <schema>.<madre>;
+alter table <schema>.<copia> enable row level security;  -- sin politicas = deny-all para anon
+```
+
+Sin politicas, RLS habilitada deja la tabla accesible solo para `service_role`, que es exactamente
+lo que se quiere en un respaldo.
+
+**Caso real (2026-09-14):** `planify.bkp_items_mayo_20260914`, respaldo de la liquidacion de sueldos
+de mayo hecho —bien— antes de tocarla, quedo con 56 sueldos completos (legajo, nombre,
+`sueldo_bolsillo`, banco, aportes) legibles y borrables por cualquiera con la clave publishable,
+durante 24 horas. El respaldo estuvo bien; lo que falto fue el `alter`.
+
+Para barrer copias abiertas en un proyecto:
+
+```sql
+select n.nspname, c.relname
+  from pg_class c join pg_namespace n on n.oid = c.relnamespace
+ where c.relkind = 'r' and c.relrowsecurity = false
+   and has_table_privilege('anon', c.oid, 'SELECT')
+   and n.nspname not in ('pg_catalog','information_schema','pg_toast');
+```
